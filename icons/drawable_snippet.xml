@@ -23,5 +23,7 @@
         <item drawable="v2rayng" />
         <item drawable="v2rayng_new" />
         <item drawable="droid_ify_alt" />
+        <item drawable="chatgpt_old" />
+        <item drawable="shenmezhidemai_old" />
         <item drawable="google_gemini_old" />
-        <!-- replaced in place (same drawable names): disney_plus, meituan, samsung_expert_raw, nothing_x, resplash, tiktok, google_gemini (old copy kept as google_gemini_old). HSR benghuai_huoche is untouched (pack original); old genshin_impact is KEPT unchanged as an alternate -->
+        <!-- replaced in place (same drawable names): disney_plus, meituan, chatgpt, shenmezhidemai, samsung_expert_raw, nothing_x, resplash, tiktok, google_gemini (old copy kept as google_gemini_old). HSR benghuai_huoche is untouched (pack original); old genshin_impact is KEPT unchanged as an alternate -->

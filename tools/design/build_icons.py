@@ -214,6 +214,36 @@ t=np.array(Image.open(R+'r8/tt_ios.jpg').convert('RGB')).astype(float); mxt=t.ma
 a=np.clip((mxt-40)/160,0,1)*(((xx-256)**2+(yy-256)**2)<215**2)
 add('tiktok', colored=cutout('tiktok',t,a,maxdim=108), bg=('#3b3c42','#0b0b0d'), sh_alpha=0.3)
 
+# =================== batch 10 (ChatGPT, 什么值得买): current OFFICIAL art (Google Play icons), glyph shape untouched, only restyled + visually centred ===================
+# Visual centre rule (same as v2rayng): mean(bbox centre, mass centroid) placed on the pack's centre (96.0, 95.5) -- the pack's own ChatGPT glyph sits at bbox (96.0, 95.5).
+TGT=(96.0,95.5)
+def _vcentre(alpha):
+    m=alpha>0.5; ys,xs=np.where(m)
+    return ((xs.min()+xs.max()+1)/2+xs.mean()+.5)/2, ((ys.min()+ys.max()+1)/2+ys.mean()+.5)/2
+def centred(make, defs='', tgt=TGT, it=4):
+    dx=dy=0.0
+    for _ in range(it):
+        s=make(dx,dy)
+        a=ms.glyph_layer(s,defs)[1] if defs else ms.glyph_alpha(s)
+        vx,vy=_vcentre(a); dx+=tgt[0]-vx; dy+=tgt[1]-vy
+    return make(dx,dy),(dx,dy)
+# ---- ChatGPT: black blossom on white (official Android/Play icon), traced as-is ----
+g=np.array(Image.open(R+'r10/gpt_1024.png').convert('RGBA')).astype(float)
+gm=1-(g[...,:3].mean(-1)/255)
+gd,gbb=mask_to_path(gm>0.5,up=2,blur=0.8)
+gvg='<linearGradient id="gv" gradientUnits="userSpaceOnUse" x1="0" y1="40" x2="0" y2="152"><stop offset="0" stop-color="#2a2f3a"/><stop offset="1" stop-color="#0b0d12"/></linearGradient>'
+gsvg,_gd=centred(lambda dx,dy: fit(gd,gbb,maxdim=112,dx=dx,dy=dy).replace('<path ','<path fill="url(#gv)" '), gvg)
+add('chatgpt', colored=gsvg, defs=gvg, bg=WHITEBG, sh_alpha=0.22)
+# ---- 什么值得买: white brush 值 on the official red (Play icon = red disc + white 值; the disc becomes the Meeye squircle) ----
+s_=np.array(Image.open(R+'r10/smzdm_1024.png').convert('RGBA')).astype(float)
+red=(s_[...,0]>200)&(s_[...,1]<90)&(s_[...,3]>250); ys_,xs_=np.where(red); ccx,ccy=(xs_.min()+xs_.max()+1)/2,(ys_.min()+ys_.max()+1)/2; rr=(xs_.max()-xs_.min()+1)/2
+yy_,xx_=np.mgrid[:s_.shape[0],:s_.shape[1]]
+sm=(s_[...,2]/255)*(((xx_-ccx)**2+(yy_-ccy)**2)<(rr-6)**2)       # blue channel: white=1, red=0
+sd,sbb=mask_to_path(sm>0.5,up=2,blur=0.8)
+srg='<linearGradient id="sg" gradientUnits="userSpaceOnUse" x1="0" y1="40" x2="0" y2="152"><stop offset="0" stop-color="#ff3320"/><stop offset="1" stop-color="#d40a00"/></linearGradient>'
+ssvg,_sd=centred(lambda dx,dy: fit(sd,sbb,maxdim=100,dx=dx,dy=dy).replace('<path ','<path fill="url(#sg)" '), srg)
+add('shenmezhidemai', colored=ssvg, defs=srg, bg=WHITEBG, sh_alpha=0.22)   # v11: white base + official-red 值 (no disc)
+
 if __name__=='__main__':
     import os; os.makedirs(OUT,exist_ok=True)
     for n,v in icons.items(): v['img'].save(OUT+n+'.png')

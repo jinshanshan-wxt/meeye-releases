@@ -36,6 +36,8 @@
 | Samsung Expert RAW | `samsung_expert_raw` | 原位替换（Galaxy Store 图标重绘成 Meeye 风格） |
 | Nothing X | `nothing_x` | 原位替换，并补上新的启动 Activity `host.MainActivity` |
 | Canta | `canta` | 新增（Shizuku 卸载工具 `io.github.samolego.canta`） |
+| ChatGPT | `chatgpt` | 原位替换：白底深色花形（官方图标形状不变）。包里原来的绿色版留作 `chatgpt_old`，没有绑定组件 |
+| 什么值得买 | `shenmezhidemai` | 原位替换：白底红色「值」（官方图标的字形，去掉红圆）。原来的留作 `shenmezhidemai_old`，没有绑定组件 |
 | Resplash | `resplash` | 原位替换 |
 | TikTok | `tiktok` | 原位替换。`com.zhiliaoapp.musically` 和 `com.ss.android.ugc.trill` 从 `douyin` 改指向这张，抖音 `com.ss.android.ugc.aweme` 不动 |
 | v2rayNG | `v2rayng`（包内原版） | 主图标仍是包里原来的白底 V。补上 `com.v2ray.ang` 和 `com.v2ray.ang.fdroid` 的新 Activity `ui.main.MainActivity`，并在图标列表里登记 |

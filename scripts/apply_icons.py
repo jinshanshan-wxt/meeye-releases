@@ -45,6 +45,8 @@ PNG_MAP = {
     "canta": "canta",
     "resplash": "resplash",
     "tiktok": "tiktok",
+    "chatgpt": "chatgpt",
+    "shenmezhidemai": "shenmezhidemai",
 }
 
 # (label, pattern, replacement). Counts must be non-zero or the upstream XML
@@ -115,6 +117,14 @@ def main() -> None:
     if not os.path.isfile(old_gemini):
         die(f"missing {old_gemini}; cannot keep the previous Gemini icon")
     shutil.copy(old_gemini, os.path.join(drawable_dir, "google_gemini_old.png"))
+
+    # ChatGPT and 什么值得买 are replaced in place; keep the pack originals as
+    # unmapped *_old alternates. Copy BEFORE the PNG_MAP loop overwrites them.
+    for base in ("chatgpt", "shenmezhidemai"):
+        orig = os.path.join(drawable_dir, base + ".png")
+        if not os.path.isfile(orig):
+            die(f"missing {orig}; cannot keep the previous {base} icon")
+        shutil.copy(orig, os.path.join(drawable_dir, base + "_old.png"))
 
     for src, name in PNG_MAP.items():
         png = os.path.join(icons, src + ".png")

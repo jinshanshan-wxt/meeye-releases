@@ -1,5 +1,6 @@
 <!-- ============================================================
-  Meeye fork – appfilter additions (paste before </resources> in BOTH
+  Meeye fork – appfilter additions (paste before     <!-- ChatGPT (com.openai.chatgpt/.MainActivity) and 什么值得买 (com.smzdm.client.android: app./welcome./activity.WelComeActivity) are already mapped in the pack (drawables chatgpt / shenmezhidemai), REPLACED in place by this build. The pack originals are kept as chatgpt_old / shenmezhidemai_old (listed in drawable.xml, not mapped) -->
+</resources> in BOTH
   assets/appfilter.xml and res/xml/appfilter.xml).
   VERIFIED   = package AND launcher activity confirmed from the app's repo/manifest or an icon-request DB.
   UNVERIFIED = package confirmed (Play/Mi/app-store listing) but launcher activity is a best guess.
@@ -61,3 +62,4 @@
     <item component="ComponentInfo{com.v2ray.ang/com.v2ray.ang.ui.main.MainActivity}" drawable="v2rayng" />
     <item component="ComponentInfo{com.v2ray.ang.fdroid/com.v2ray.ang.ui.main.MainActivity}" drawable="v2rayng" />
     <!-- Already mapped in the pack, drawable REPLACED in place by this build: samsung_expert_raw (com.samsung.android.app.galaxyraw/.GalaxyRaw), resplash (com.b_lam.resplash/.ui.main.MainActivity), tiktok (+ the build re-points com.zhiliaoapp.musically and com.ss.android.ugc.trill from the old "douyin" drawable to tiktok; Douyin com.ss.android.ugc.aweme keeps douyin). Droid-ify keeps the pack's original droid_ify; droid_ify_alt = extra option, not mapped -->
+    <!-- ChatGPT (com.openai.chatgpt/.MainActivity) and 什么值得买 (com.smzdm.client.android: app./welcome./activity.WelComeActivity) are already mapped in the pack (drawables chatgpt / shenmezhidemai); drawables REPLACED in place. The pack originals are kept as chatgpt_old / shenmezhidemai_old (listed in drawable.xml, not mapped) -->
