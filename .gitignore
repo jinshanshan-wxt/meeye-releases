@@ -11,3 +11,7 @@
 /dist/
 /build/
 /out/
+
+# Python bytecode from local checks.
+__pycache__/
+*.pyc
