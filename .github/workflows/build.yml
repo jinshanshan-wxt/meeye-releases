@@ -1,0 +1,198 @@
+name: Build custom Meeye APK
+
+# Push to main only when the icons, the pack scripts, or this workflow change.
+# pull_request uses the same paths so a PR can prove the artifact builds.
+# workflow_dispatch always runs; apk_url overrides the upstream base APK.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "icons/**"
+      - "scripts/**"
+      - ".github/workflows/build.yml"
+  pull_request:
+    paths:
+      - "icons/**"
+      - "scripts/**"
+      - ".github/workflows/build.yml"
+  workflow_dispatch:
+    inputs:
+      apk_url:
+        description: "Override base APK URL. Empty = latest yeyebbc/meeye-releases APK (fallback tag E-10.0 / Meeye-E-10.0-c400-release.apk)."
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: meeye-custom-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # 2.11.1 accepts `b --use-aapt2` (aapt2 is already the default; the flag still works).
+  # 2.12+ removed --use-aapt2, so do not bump this without changing scripts/rebuild.sh.
+  APKTOOL_VERSION: "2.11.1"
+  ANDROID_BUILD_TOOLS: "35.0.0"
+  CMDLINE_TOOLS_REV: "15859902"
+
+jobs:
+  build:
+    name: Build signed APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Install apktool ${{ env.APKTOOL_VERSION }}
+        run: |
+          set -euo pipefail
+          jar="$RUNNER_TEMP/apktool.jar"
+          curl -fL --retry 5 --retry-delay 2 \
+            -o "$jar" \
+            "https://github.com/iBotPeaches/Apktool/releases/download/v${APKTOOL_VERSION}/apktool_${APKTOOL_VERSION}.jar"
+          cat > "$RUNNER_TEMP/apktool" <<EOF
+          #!/bin/sh
+          exec java -Xmx4g -Dfile.encoding=utf-8 -Djdk.util.zip.disableZip64ExtraFieldValidation=true -Djdk.nio.zipfs.allowDotZipEntry=true -jar "$jar" "\$@"
+          EOF
+          chmod +x "$RUNNER_TEMP/apktool"
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/apktool" --version
+
+      - name: Install Android build-tools ${{ env.ANDROID_BUILD_TOOLS }}
+        run: |
+          set -euo pipefail
+          sdk="$RUNNER_TEMP/android-sdk"
+          mkdir -p "$sdk/cmdline-tools" "$sdk/licenses"
+          curl -fL --retry 5 --retry-delay 2 \
+            -o "$RUNNER_TEMP/cmdtools.zip" \
+            "https://dl.google.com/android/repository/commandlinetools-linux-${CMDLINE_TOOLS_REV}_latest.zip"
+          rm -rf "$RUNNER_TEMP/cmdtools-unzip"
+          unzip -q "$RUNNER_TEMP/cmdtools.zip" -d "$RUNNER_TEMP/cmdtools-unzip"
+          rm -rf "$sdk/cmdline-tools/latest"
+          mv "$RUNNER_TEMP/cmdtools-unzip/cmdline-tools" "$sdk/cmdline-tools/latest"
+          echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" > "$sdk/licenses/android-sdk-license"
+          yes | "$sdk/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$sdk" --licenses >/dev/null || true
+          "$sdk/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$sdk" "build-tools;${ANDROID_BUILD_TOOLS}"
+          tools="$sdk/build-tools/${ANDROID_BUILD_TOOLS}"
+          echo "$tools" >> "$GITHUB_PATH"
+          "$tools/apksigner" --version
+          "$tools/zipalign" 2>&1 | head -n 2 || true
+
+      - name: Download base APK
+        id: base
+        env:
+          APK_URL: ${{ github.event.inputs.apk_url || '' }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/download_base.py --dest "$RUNNER_TEMP/base"
+
+      - name: Name the artifact
+        id: meta
+        env:
+          BASE_VERSION: ${{ steps.base.outputs.version }}
+          BASE_FILENAME: ${{ steps.base.outputs.filename }}
+          BASE_SOURCE: ${{ steps.base.outputs.source }}
+          BASE_URL: ${{ steps.base.outputs.url }}
+        run: |
+          set -euo pipefail
+          short="${GITHUB_SHA::7}"
+          version=$(printf '%s' "$BASE_VERSION" | tr -c 'A-Za-z0-9._+-' '-' | sed 's/^-//;s/-$//')
+          if [[ -z "$version" ]]; then
+            echo "error: empty base version" >&2
+            exit 1
+          fi
+          name="Meeye-custom-${version}-${short}"
+          mkdir -p dist
+          {
+            echo "artifact=$name"
+            echo "short_sha=$short"
+            echo "out=$GITHUB_WORKSPACE/dist/${name}.apk"
+          } >> "$GITHUB_OUTPUT"
+          {
+            echo "### 底包"
+            echo "- 版本: \`$version\`（来源 $BASE_SOURCE）"
+            echo "- 文件: \`$BASE_FILENAME\`"
+            echo "- URL: $BASE_URL"
+            echo "- 产物: \`$name.apk\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Prepare signing key
+        id: signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          missing=()
+          [[ -n "${KEYSTORE_BASE64:-}" ]] || missing+=("KEYSTORE_BASE64")
+          [[ -n "${KEYSTORE_PASSWORD:-}" ]] || missing+=("KEYSTORE_PASSWORD")
+          [[ -n "${KEY_ALIAS:-}" ]] || missing+=("KEY_ALIAS")
+          [[ -n "${KEY_PASSWORD:-}" ]] || missing+=("KEY_PASSWORD")
+          ks="$RUNNER_TEMP/meeye-release.keystore"
+          if [[ ${#missing[@]} -eq 0 ]]; then
+            if ! printf '%s' "$KEYSTORE_BASE64" | tr -d '[:space:]' | base64 -d > "$ks"; then
+              echo "error: KEYSTORE_BASE64 is not valid base64" >&2
+              exit 1
+            fi
+            if [[ ! -s "$ks" ]]; then
+              echo "error: decoded keystore is empty" >&2
+              exit 1
+            fi
+            keytool -list -keystore "$ks" -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" >/dev/null
+            {
+              echo "mode=stable"
+              echo "keystore_file=$ks"
+            } >> "$GITHUB_OUTPUT"
+            {
+              echo "### 签名"
+              echo "使用仓库 Secrets 里的稳定密钥（alias \`$KEY_ALIAS\`）。同一把密钥签出的包可以互相覆盖安装。"
+            } >> "$GITHUB_STEP_SUMMARY"
+          elif [[ ${#missing[@]} -eq 4 ]]; then
+            {
+              echo "mode=throwaway"
+              echo "keystore_file="
+            } >> "$GITHUB_OUTPUT"
+            {
+              echo "### ⚠️ 签名警告"
+              echo "没有配置 \`KEYSTORE_BASE64\`、\`KEYSTORE_PASSWORD\`、\`KEY_ALIAS\`、\`KEY_PASSWORD\`。"
+              echo "这次 APK 用**一次性临时密钥**签名。下次构建签名会变，**不能覆盖安装**。"
+              echo "请按 README 生成密钥库，把四个 Secrets 配上，然后重新跑这个 workflow。"
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::warning::No keystore secrets configured. Signing with a throwaway key; this APK will not update over previous installs."
+          else
+            echo "error: signing secrets are only partly set. Missing: ${missing[*]}" >&2
+            echo "Set all four (KEYSTORE_BASE64, KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD), or leave all four empty." >&2
+            exit 1
+          fi
+
+      - name: Build, sign, and verify
+        env:
+          KEYSTORE_FILE: ${{ steps.signing.outputs.keystore_file }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          scripts/rebuild.sh \
+            "${{ steps.base.outputs.path }}" \
+            icons \
+            "${{ steps.meta.outputs.out }}"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.meta.outputs.artifact }}
+          path: ${{ steps.meta.outputs.out }}
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 1

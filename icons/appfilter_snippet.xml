@@ -1,0 +1,55 @@
+<!-- ============================================================
+  Meeye fork – appfilter additions (paste before </resources> in BOTH
+  assets/appfilter.xml and res/xml/appfilter.xml).
+  VERIFIED   = package AND launcher activity confirmed from the app's repo/manifest or an icon-request DB.
+  UNVERIFIED = package confirmed (Play/Mi/app-store listing) but launcher activity is a best guess.
+               Check on-device with:
+               adb shell cmd package resolve-activity --brief -c android.intent.category.LAUNCHER <package>
+  ============================================================ -->
+
+    <!-- Grok (xAI) [VERIFIED: iconpusher] -->
+    <item component="ComponentInfo{ai.x.grok/ai.x.grok.main.GrokActivity}" drawable="grok" />
+    <!-- Grok Bot [package verified on Play; activity UNVERIFIED] -->
+    <item component="ComponentInfo{ai.x.grok.bot/ai.x.grok.bot.MainActivity}" drawable="grok_bot" />
+    <!-- X (replaces blue-bird "twitter" for the official app) [VERIFIED: already in pack]
+         NOTE: the existing lines for com.twitter.android must be re-pointed from drawable="twitter" to "x_twitter"
+         (the build script does this automatically). Lines for reference: -->
+    <item component="ComponentInfo{com.twitter.android/com.twitter.android.StartActivity}" drawable="x_twitter" />
+    <item component="ComponentInfo{com.twitter.android/com.twitter.app.main.MainActivity}" drawable="x_twitter" />
+    <!-- 飞牛 fnOS [package verified: Mi Store/AppChina; activity UNVERIFIED] -->
+    <item component="ComponentInfo{com.trim.app/com.trim.app.MainActivity}" drawable="feiniu" />
+    <!-- Philips Sonicare [package verified on Play; activity UNVERIFIED] -->
+    <item component="ComponentInfo{com.philips.cdp.ohc.tuscany/com.philips.cdp.ohc.tuscany.MainActivity}" drawable="philips_sonicare" />
+    <!-- Termius [VERIFIED: apk20 / apk.now / iconpusher]. The pack's existing SplashScreenActivity entry already
+         pointed at drawable "termius" but that drawable did not exist; MainActivity (current launcher) was not mapped. -->
+    <item component="ComponentInfo{com.server.auditor.ssh.client/com.server.auditor.ssh.client.navigation.MainActivity}" drawable="termius" />
+    <item component="ComponentInfo{com.server.auditor.ssh.client/com.server.auditor.ssh.client.navigation.SplashScreenActivity}" drawable="termius" />
+    <!-- PiliNara [VERIFIED: android/app/build.gradle.kts + AndroidManifest; ".dev"/".debug" suffix builds differ] -->
+    <item component="ComponentInfo{com.example.pilinara/com.example.pilinara.MainActivity}" drawable="pilinara" />
+    <item component="ComponentInfo{com.example.pilinara.dev/com.example.pilinara.MainActivity}" drawable="pilinara" />
+    <!-- Venera [VERIFIED: repo build.gradle + manifest] -->
+    <item component="ComponentInfo{com.github.wgh136.venera/com.github.wgh136.venera.MainActivity}" drawable="venera" />
+    <!-- 雹 Hail [VERIFIED: repo build.gradle.kts + manifest] -->
+    <item component="ComponentInfo{com.aistra.hail/com.aistra.hail.ui.main.MainActivity}" drawable="hail" />
+    <!-- HSR: reverted to the pack's original benghuai_huoche (train); nothing added here -->
+    <!-- 原神: com.miHoYo.Yuanshen (CN) and com.miHoYo.GenshinImpact (global) are re-pointed by the build from genshin_impact to the NEW genshin_a (door of light); genshin_b / genshin_c are extra options; old genshin_impact stays as an alternate -->
+    <!-- SenPlayer Android closed beta [package com.wuziqi.SenPlayer from a third-party APK listing (same id as the iOS bundle); launcher activity UNKNOWN] -->
+    <item component="ComponentInfo{com.wuziqi.SenPlayer/com.wuziqi.SenPlayer.MainActivity}" drawable="senplayer" />
+    <!-- Disney+: com.disney.disneyplus -> drawable "disney_plus" already mapped; the build REPLACES that drawable -->
+    <!-- bilibili 白色图标国际版 (Google Play id com.bilibili.app.in; NOT com.bstar.intl which is the blue "Bstation" robot) -->
+    <item component="ComponentInfo{com.bilibili.app.in/tv.danmaku.bili.MainActivityV2}" drawable="bilibili_white" />
+    <item component="ComponentInfo{com.bilibili.app.in/tv.danmaku.bili.ui.splash.SplashActivity}" drawable="bilibili_white" />
+    <!-- Nrfr [VERIFIED: Ackites/Nrfr] -->
+    <item component="ComponentInfo{com.github.nrfr/com.github.nrfr.MainActivity}" drawable="nrfr" />
+    <!-- Eskimo eSIM [package verified on Play; activity UNVERIFIED] -->
+    <item component="ComponentInfo{travel.eskimo.esim/travel.eskimo.esim.MainActivity}" drawable="eskimo" />
+    <!-- Game Booster+ (renamed Good Lock plugin) [VERIFIED: Galaxy Store listing com.samsung.android.game.honeyplayplus; launcher activity .ui.LaunchActivity per apk.now/APKMirror metadata] -->
+    <item component="ComponentInfo{com.samsung.android.game.honeyplayplus/com.samsung.android.game.honeyplayplus.ui.LaunchActivity}" drawable="samsung_game_booster_plus" />
+    <!-- older Good Lock build (gameboosterplus) kept mapped to the same drawable -->
+    <item component="ComponentInfo{com.samsung.android.game.gameboosterplus/com.samsung.android.game.gameboosterplus.ui.MainActivity}" drawable="samsung_game_booster_plus" />
+    <!-- Samsung Game Plugins host app (com.samsung.android.game.gamelab) [VERIFIED: iconpusher] -->
+    <item component="ComponentInfo{com.samsung.android.game.gamelab/com.samsung.android.game.gamelab.ui.StartActivity}" drawable="samsung_game_booster_plus" />
+    <!-- Meituan 美团: com.sankuai.meituan entries (MainActivity / Welcome / PreloadedWelcome) are already mapped to drawable "meituan"; the build REPLACES that drawable with a white-wordmark-on-warm-yellow Meeye version; the official black-on-yellow look is kept as extra drawable meituan_alt (no component mapped) -->
+    <!-- Gemini: com.google.android.apps.bard/...shellapp.BardEntryPointActivity [VERIFIED: iconpusher + already in pack, the only Gemini component in the pack] stays mapped to drawable "google_gemini", which the build REPLACES with the current multicolor-sparkle icon; the old purple/blue one is kept as google_gemini_old (no component mapped) -->
+    <!-- DeepSeek [VERIFIED: iconpusher]. Main = white bg / blue whale (original design); deepseek_alt = inverted blue bg / white whale, extra option, no component mapped -->
+    <item component="ComponentInfo{com.deepseek.chat/com.deepseek.chat.MainActivity}" drawable="deepseek" />
