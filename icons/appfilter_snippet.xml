@@ -53,3 +53,11 @@
     <!-- Gemini: com.google.android.apps.bard/...shellapp.BardEntryPointActivity [VERIFIED: iconpusher + already in pack, the only Gemini component in the pack] stays mapped to drawable "google_gemini", which the build REPLACES with the current multicolor-sparkle icon; the old purple/blue one is kept as google_gemini_old (no component mapped) -->
     <!-- DeepSeek [VERIFIED: iconpusher]. Main = white bg / blue whale (original design); deepseek_alt = inverted blue bg / white whale, extra option, no component mapped -->
     <item component="ComponentInfo{com.deepseek.chat/com.deepseek.chat.MainActivity}" drawable="deepseek" />
+    <!-- Canta (Shizuku app uninstaller) [VERIFIED: samolego/Canta androidApp manifest: applicationId io.github.samolego.canta, launcher .MainActivity] -->
+    <item component="ComponentInfo{io.github.samolego.canta/io.github.samolego.canta.MainActivity}" drawable="canta" />
+    <!-- Nothing X (com.nothing.smartcenter): newer launcher activity [VERIFIED: iconpusher]; the older WelcomeActivity entries are already in the pack (nothing_x / nothing_ear) -->
+    <item component="ComponentInfo{com.nothing.smartcenter/com.nothing.smartcenter.host.MainActivity}" drawable="nothing_x" />
+    <!-- v2rayNG [VERIFIED: 2dust/v2rayNG master manifest]: current launcher is .ui.main.MainActivity (the pack only had the old .ui.MainActivity). Play and GitHub builds share applicationId com.v2ray.ang; the F-Droid flavor is com.v2ray.ang.fdroid. All map to the pack's ORIGINAL v2rayng drawable. v2rayng_new = extra option, not mapped -->
+    <item component="ComponentInfo{com.v2ray.ang/com.v2ray.ang.ui.main.MainActivity}" drawable="v2rayng" />
+    <item component="ComponentInfo{com.v2ray.ang.fdroid/com.v2ray.ang.ui.main.MainActivity}" drawable="v2rayng" />
+    <!-- Already mapped in the pack, drawable REPLACED in place by this build: samsung_expert_raw (com.samsung.android.app.galaxyraw/.GalaxyRaw), resplash (com.b_lam.resplash/.ui.main.MainActivity), tiktok (+ the build re-points com.zhiliaoapp.musically and com.ss.android.ugc.trill from the old "douyin" drawable to tiktok; Douyin com.ss.android.ugc.aweme keeps douyin). Droid-ify keeps the pack's original droid_ify; droid_ify_alt = extra option, not mapped -->

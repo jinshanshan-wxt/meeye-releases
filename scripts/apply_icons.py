@@ -38,6 +38,13 @@ PNG_MAP = {
     "genshin_a": "genshin_a",
     "genshin_b": "genshin_b",
     "genshin_c": "genshin_c",
+    "v2rayng_new": "v2rayng_new",
+    "droid_ify_alt": "droid_ify_alt",
+    "samsung_expert_raw": "samsung_expert_raw",
+    "nothing_x": "nothing_x",
+    "canta": "canta",
+    "resplash": "resplash",
+    "tiktok": "tiktok",
 }
 
 # (label, pattern, replacement). Counts must be non-zero or the upstream XML
@@ -56,6 +63,13 @@ REPOINTS = (
             r'(ComponentInfo\{com\.miHoYo\.(?:Yuanshen|GenshinImpact)/[^"]*\}"\s+drawable=")genshin_impact(")'
         ),
         r"\1genshin_a\2",
+    ),
+    (
+        "tiktok",
+        re.compile(
+            r'(ComponentInfo\{com\.(?:zhiliaoapp\.musically|ss\.android\.ugc\.trill)/com\.ss\.android\.ugc\.aweme\.splash\.SplashActivity\}"\s+drawable=")douyin(")'
+        ),
+        r"\1tiktok\2",
     ),
     (
         "bilibili",

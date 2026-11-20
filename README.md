@@ -33,6 +33,14 @@
 | Gemini 旧版 | `google_gemini_old` | 包里原来的图标留作备选 |
 | 原神 | `genshin_a` | 已映射国服 `com.miHoYo.Yuanshen` 和国际服 `com.miHoYo.GenshinImpact`。光之门 |
 | 原神备选 | `genshin_b`、`genshin_c` | 不绑定组件，可在图标包里手动选 |
+| Samsung Expert RAW | `samsung_expert_raw` | 原位替换（Galaxy Store 图标重绘成 Meeye 风格） |
+| Nothing X | `nothing_x` | 原位替换，并补上新的启动 Activity `host.MainActivity` |
+| Canta | `canta` | 新增（Shizuku 卸载工具 `io.github.samolego.canta`） |
+| Resplash | `resplash` | 原位替换 |
+| TikTok | `tiktok` | 原位替换。`com.zhiliaoapp.musically` 和 `com.ss.android.ugc.trill` 从 `douyin` 改指向这张，抖音 `com.ss.android.ugc.aweme` 不动 |
+| v2rayNG | `v2rayng`（包内原版） | 主图标仍是包里原来的白底 V。补上 `com.v2ray.ang` 和 `com.v2ray.ang.fdroid` 的新 Activity `ui.main.MainActivity`，并在图标列表里登记 |
+| v2rayNG 官方 logo | `v2rayng_new` | 备选，官方 logo 形状不变、按包内原版的视觉中心居中，没有绑定组件 |
+| Droid-ify 新版 | `droid_ify_alt` | 备选，包里原来的 `droid_ify` 不动，没有绑定组件 |
 | 崩坏：星穹铁道 | （不动） | 继续用包内原来的 `benghuai_huoche` |
 
 原神旧图标 `genshin_impact` 还在，只是官方客户端不再指向它。

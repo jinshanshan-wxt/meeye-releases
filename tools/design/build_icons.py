@@ -158,6 +158,62 @@ cut=Image.open(R+'gemini_cutout.png'); _b=__import__('io').BytesIO(); cut.save(_
 gm=f'<image x="{96-56:.1f}" y="{96-56:.1f}" width="112" height="112" xlink:href="data:image/png;base64,{base64.b64encode(_b.getvalue()).decode()}" xmlns:xlink="http://www.w3.org/1999/xlink"/>'
 add('google_gemini', colored=gm, bg=('#ffffff','#e4e8f0'), sh_alpha=0.2)
 
+
+# =================== batch 8 (v2rayNG, Expert RAW, Nothing X, Canta, Droid-ify, Resplash, TikTok) ===================
+from scipy import ndimage as ndi
+def cutout(name, rgb, alpha, maxdim, dy=0, up=3, dx=0):
+    """rgb HxWx3 (0-255), alpha HxW (0-1) -> raster glyph <image> (interior colours pushed out to the edge: no halo)"""
+    H,W=alpha.shape
+    im=Image.fromarray(rgb.astype(np.uint8)).resize((W*up,H*up),Image.LANCZOS); rgb=np.array(im).astype(float)
+    a=np.array(Image.fromarray((alpha*255).astype(np.uint8)).resize((W*up,H*up),Image.BICUBIC)).astype(float)/255
+    solid=a>0.9; idx=ndi.distance_transform_edt(~solid,return_distances=False,return_indices=True)
+    rgb=rgb[idx[0],idx[1]]
+    ys,xs=np.where(a>0.02); x0,x1,y0,y1=xs.min()-2,xs.max()+3,ys.min()-2,ys.max()+3
+    out=np.dstack([rgb,a*255]).astype(np.uint8)[y0:y1,x0:x1]; Image.fromarray(out,'RGBA').save(R+'cut_'+name+'.png')
+    w,h=x1-x0,y1-y0; s=maxdim/max(w,h); bio=__import__('io').BytesIO(); Image.fromarray(out,'RGBA').save(bio,'PNG')
+    ax,ay=(x0+x1)/2,(y0+y1)/2   # bbox centre of the visible art
+    return (f'<image x="{96+dx-w*s/2:.2f}" y="{96+dy-h*s/2:.2f}" width="{w*s:.2f}" height="{h*s:.2f}" '
+            f'xlink:href="data:image/png;base64,{base64.b64encode(bio.getvalue()).decode()}" xmlns:xlink="http://www.w3.org/1999/xlink"/>')
+def rd(f): return np.array(Image.open(R+'r8/'+f).convert('RGBA')).astype(float)
+WHITEBG=('#ffffff','#e4e8f0')
+# ---- 1 v2rayNG_new: the OFFICIAL logo shape, untouched (traced from 2dust/v2rayNG ic_launcher_foreground), only positioned.
+# The pack's own v2rayng (reference, visually centred) has bbox centre (99.0, 101.0) and mass centroid (91.2, 93.3);
+# its visual centre = mean of the two = (95.1, 97.2). Same rule here: place the logo so (bbox centre + centroid)/2 == (95.1, 97.2).
+f=rd('v2_fg.png'); d,bb=mask_to_path(f[...,3]/255>0.5,up=2,blur=0.8)
+vg='<linearGradient id="vg" gradientUnits="userSpaceOnUse" x1="0" y1="48" x2="0" y2="146"><stop offset="0" stop-color="#2a2f3a"/><stop offset="1" stop-color="#0b0d12"/></linearGradient>'
+def _v2(dx,dy): return fit(d,bb,maxdim=100,dx=dx,dy=dy).replace('<path ','<path fill="url(#vg)" ')
+def _vis(dx,dy):
+    _,a=ms.glyph_layer(_v2(dx,dy),vg); m=a>0.5; ys,xs=np.where(m)
+    return ((xs.min()+xs.max())/2+xs.mean())/2, ((ys.min()+ys.max())/2+ys.mean())/2
+_dx=_dy=0.0
+for _ in range(4):
+    _vx,_vy=_vis(_dx,_dy); _dx+=95.1-_vx; _dy+=97.2-_vy
+add('v2rayng_new', colored=_v2(_dx,_dy), defs=vg, bg=WHITEBG, sh_alpha=0.22)
+# ---- 2 Samsung Expert RAW: Galaxy Store icon (grey camera on silver) ----
+f=rd('raw512.png'); lum_=f[...,:3].mean(-1); yy,xx=np.mgrid[0:512,0:512]
+m=(lum_<150)&(f[...,3]>200)&(((xx-256)**2+(yy-290)**2)<230**2); m=ndi.binary_closing(m,iterations=2); m=ndi.binary_fill_holes(m)
+_l,_n=ndi.label(m); m=_l==(np.argmax(np.bincount(_l.ravel())[1:])+1)   # keep only the camera (drops faint squircle-edge shading)
+add('samsung_expert_raw', colored=cutout('raw',f[...,:3],ndi.gaussian_filter(m.astype(float),0.8),maxdim=116), bg=('#eceff5','#b9bfce'), sh_alpha=0.25)
+# ---- 3 Nothing X: official capsule+cross+red dot (Play icon) ----
+f=rd('nothing_play.png'); a=np.clip((255-f[...,:3].min(-1))/35,0,1)*(f[...,3]>200)*(((xx-256)**2+(yy-256)**2)<235**2)
+add('nothing_x', colored=cutout('nothingx',f[...,:3],a,maxdim=112), bg=('#ffffff','#eef0f5'), sh_alpha=0.22)
+# ---- 4 Canta: white bin+arrow (samolego/Canta ic_launcher_foreground) ----
+f=rd('canta_ic_launcher_foreground.png'); d,bb=mask_to_path(f[...,3]/255>0.5,up=2,blur=0.8)
+add('canta', fit(d,bb,maxdim=92), ('#f04a43','#b30f12'), '#ffdede')
+# ---- 5 Droid-ify: green arc + orange arrow on charcoal (Droid-ify/client) ----
+f=rd('droid_ic.png'); yy2,xx2=np.mgrid[0:192,0:192]; mx=f[...,:3].max(-1)
+a=np.clip((mx-75)/70,0,1)*(((xx2-96)**2+(yy2-96)**2)<80**2)
+add('droid_ify_alt', colored=cutout('droid',f[...,:3],a,maxdim=104,up=4), bg=('#323a38','#111514'), sh_alpha=0.3)
+# ---- 6 Resplash: ring + disc (b-lam/Resplash ic_launcher_foreground) ----
+f=rd('resp_ic_launcher_foreground.png'); d,bb=mask_to_path(f[...,3]/255>0.5,up=2,blur=0.8)
+add('resplash', fit(d,bb,maxdim=104).replace('<path ','<path fill="url(#vg)" '), None, defs=None) if False else None
+a_=f[...,3]/255; d,bb=mask_to_path(a_>0.5,up=2,blur=0.8)
+add('resplash', colored=fit(d,bb,maxdim=104).replace('<path ','<path fill="url(#vg)" '), defs=vg.replace('#2a2f3a','#37444c').replace('#0b0d12','#182127'), bg=WHITEBG, sh_alpha=0.22)
+# ---- 7 TikTok: current official note with the cyan/red offsets, near-white on dark gradient ----
+t=np.array(Image.open(R+'r8/tt_ios.jpg').convert('RGB')).astype(float); mxt=t.max(-1)
+a=np.clip((mxt-40)/160,0,1)*(((xx-256)**2+(yy-256)**2)<215**2)
+add('tiktok', colored=cutout('tiktok',t,a,maxdim=108), bg=('#3b3c42','#0b0b0d'), sh_alpha=0.3)
+
 if __name__=='__main__':
     import os; os.makedirs(OUT,exist_ok=True)
     for n,v in icons.items(): v['img'].save(OUT+n+'.png')
