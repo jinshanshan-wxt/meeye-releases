@@ -1,2 +1,17 @@
 # macOS & OS X Spotlight index file.
 *.DS_Store
+
+# Signing material. Never commit a keystore.
+*.jks
+*.keystore
+*.p12
+
+# Build outputs.
+*.apk
+/dist/
+/build/
+/out/
+
+# Python bytecode from local checks.
+__pycache__/
+*.pyc
