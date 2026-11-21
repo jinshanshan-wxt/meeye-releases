@@ -66,6 +66,9 @@ adb shell cmd package resolve-activity --brief -c android.intent.category.LAUNCH
 
 `com.twitter.android` 的新增行会被构建脚本丢掉，避免和包里已经有的条目重复；已有条目会从 `twitter` 改成 `x_twitter`。要给 X 补一条包里没有的 Activity，直接改 `scripts/apply_icons.py` 里的过滤。
 
+
+> 版本号：构建时把 versionCode 改成 900000（可用环境变量 `VERSION_CODE` 覆盖），versionName 改成「上游版本-custom」（如 `E-10.0-custom`），这样 Google Play 不会再提示"有更新"把它换回官方版。包名和签名不变。
+
 ## 下载 APK
 
 1. 打开 [Actions](https://github.com/jinshanshan-wxt/meeye-releases/actions/workflows/build.yml)。

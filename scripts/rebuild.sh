@@ -63,6 +63,31 @@ run_apktool d -f -o "$WORK/dec" "$ORIG"
 echo "applying icons from $ICONS"
 python3 "$APPLY" "$WORK/dec" "$ICONS"
 
+# Version bump: a custom build must never look older than the store build, or
+# Google Play offers an "update" that would replace it. Package name and
+# signing stay unchanged. VERSION_CODE defaults to 900000.
+echo "setting version (VERSION_CODE=${VERSION_CODE:-900000})"
+VERSION_CODE=${VERSION_CODE:-900000} python3 - "$WORK/dec/apktool.yml" <<'PY'
+import os, re, sys
+path = sys.argv[1]
+code = os.environ["VERSION_CODE"]
+if not code.isdigit():
+    sys.exit(f"error: VERSION_CODE must be an integer, got {code!r}")
+with open(path, encoding="utf-8") as fh:
+    text = fh.read()
+m = re.search(r"^(\s*)versionName:\s*(.*?)\s*$", text, re.M)
+if not m or not re.search(r"^\s*versionCode:", text, re.M):
+    sys.exit(f"error: {path} has no versionInfo versionCode/versionName")
+name = m.group(2).strip("'\"")
+if not name.endswith("-custom"):
+    name += "-custom"
+text = re.sub(r"^(\s*)versionCode:.*$", lambda x: f"{x.group(1)}versionCode: {code}", text, count=1, flags=re.M)
+text = re.sub(r"^(\s*)versionName:.*$", lambda x: f"{x.group(1)}versionName: {name}", text, count=1, flags=re.M)
+with open(path, "w", encoding="utf-8") as fh:
+    fh.write(text)
+print(f"versionCode={code} versionName={name}")
+PY
+
 echo "rebuilding"
 # apktool 2.11.1 accepts --use-aapt2 (aapt2 is also its default). 2.12 removed the flag.
 run_apktool b --use-aapt2 -o "$WORK/unsigned.apk" "$WORK/dec"
